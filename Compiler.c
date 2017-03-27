@@ -111,8 +111,7 @@ static int variable()
 }
 
 static int expr()
-{
-	int reg, left_reg, right_reg;
+{int reg, left_reg, right_reg;
 
 	switch (token) {
 
@@ -123,20 +122,79 @@ static int expr()
 		reg = next_register();
 		CodeGen(ADD, left_reg, right_reg, reg);
 		return reg;
-
-
-        case 'f':
-                return variable();
-
-
+	case '-':
+		next_token();
+		left_reg = expr();
+		right_reg = expr();
+		reg = next_register();
+		CodeGen(SUB, left_reg, right_reg, reg);
+		return reg;
+	case '*':
+		next_token();
+		left_reg = expr();
+		right_reg = expr();
+		reg = next_register();
+		CodeGen(MUL, left_reg, right_reg, reg);
+		return reg;
+	case '%':
+		next_token();
+		left_reg = expr();
+		right_reg = expr();
+		reg = next_register();
+		CodeGen(DIV, left_reg, right_reg, reg);
+		return reg;
+    case 'a':
+    	return variable();
+    case 'b':
+    	return variable();
+    case 'c':
+    	return variable();
+    case 'd':
+    	return variable();
+    case 'e':
+    	return variable();
+    case 'f':
+    	return variable();
+    case 'g':
+    	return variable();
+    case 'h':
+    	return variable();
+    case 'i':
+    	return variable();
+    case 'j':
+    	return variable();
+    case 'k':
+    	return variable();
+    case 'l':
+    	return variable();
+    case 'm':
+    	return variable();
+    case 'n':
+    	return variable();
+    case 'o':
+    	return variable();
+    case 'p':
+    	return variable();
+    case '0':
+    	return digit();
 	case '1':
-                return digit();
-
+    	return digit();
 	case '2':
-                return digit();
-
+    	return digit();
 	case '3':
-                return digit();
+    	return digit();
+    case '4':
+    	return digit();
+	case '5':
+    	return digit();
+	case '6':
+    	return digit();
+    case '7':
+    	return digit();
+	case '8':
+    	return digit();
+	case '9':
+    	return digit();
 
 	default:
 		ERROR("Symbol %c unknown\n", token);
