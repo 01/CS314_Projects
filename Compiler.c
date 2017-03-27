@@ -2,7 +2,7 @@
  *********************************************
  *  314 Principles of Programming Languages  *
  *  Spring 2017                              *
- *  Author: Ulrich Kremer                    *
+ *  Author: Andrew Khazanovich               *
  *  Student Version                          *
  *********************************************
  */
@@ -215,27 +215,62 @@ static void print()
 static void stmt()
 {
 	/* YOUR CODE GOES HERE */
+	switch (token) {
+	case 'a':
+    case 'b':
+    case 'c':
+    case 'd':
+    case 'e':
+    case 'f':
+    case 'g':
+    case 'h':
+    case 'i':
+    case 'j':
+    case 'k':
+    case 'l':
+    case 'm':
+    case 'n':
+    case 'o':
+    case 'p':					// assignment
+		assign();
+		break;
+	case '#':					// print		
+		print();
+		break;
+	default:
+		ERROR("Symbol %c unknown Failed at stmt()\n", token);
+		exit(EXIT_FAILURE);
+	}
 }
 
 static void morestmts()
 {
 	/* YOUR CODE GOES HERE */
+	switch (token) {
+	case ';':
+		next_token();
+		stmtlist();
+		break;
+	case ' ':									// epsilon
+		break;
+	default:
+		ERROR("Symbol %c unknown\n", token);
+		exit(EXIT_FAILURE);
+	}
 }
 
 static void stmtlist()
 {
 	/* YOUR CODE GOES HERE */
+	stmt();
+	morestmts();
+	
 }
 
 static void program()
 {
-	/* YOUR CODE GOES HERE */
-
-        /* THIS CODE IS BOGUS */
-        int dummy;
-        /* THIS CODE IS BOGUS */
-	dummy = expr();
-
+	
+	stmtlist();
 	if (token != '.') {
 	  ERROR("Program error.  Current input symbol is %c\n", token);
 	  exit(EXIT_FAILURE);
