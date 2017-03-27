@@ -67,6 +67,33 @@ int main()
 		}
 	}
 
+	// Remove dead code (remove from Double LL classic)
+	Instruction *temp, *ptr;
+	ptr = head; temp = ptr;
+	while (ptr != NULL) {
+		
+		if (ptr->critical) {
+			ptr = ptr->next;
+			continue;
+		}
+		else{
+			temp = ptr;
+			// If instruction is not critical, take next instruction and point its previous to non-critical's previous
+			if (ptr->next != NULL){
+				ptr->next->prev = ptr->prev;
+			}
+			// If there is a previous instruction point it to the non-critical instructions next instruction
+			if (ptr->prev != NULL){
+				ptr->prev->next = ptr->next;
+			}
+			// if no previous instruction, then the non-critical instruction was the head, update head;
+			else{
+				head = ptr->next;
+			}	
+		ptr = ptr->next;
+		free(temp);
+	 	}
+
 	if (head) 
 		PrintInstructionList(stdout, head);
 	
