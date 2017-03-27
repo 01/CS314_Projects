@@ -243,6 +243,7 @@ static void print()
 
 	// OUTPUTAI token 
 	CodeGen(OUTPUTAI, token, EMPTY_FIELD, EMPTY_FIELD);
+	next_token();
 	
 }
 
@@ -290,7 +291,7 @@ static void morestmts()
 		next_token();
 		stmtlist();
 		break;
-	case ' ':									// epsilon
+	case '.':									// epsilon
 		break;
 	default:
 		ERROR("Symbol %c unknown\n", token);
