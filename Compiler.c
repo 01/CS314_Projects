@@ -205,6 +205,24 @@ static int expr()
 static void assign()
 {
 	/* YOUR CODE GOES HERE */
+	// <assign> ::= <variable> = <expr>
+	// first token = <variable> -> a->p or error
+	if (!is_identifier(token)) {
+		ERROR("Expected identifier\n");
+		exit(EXIT_FAILURE);
+	}
+	// store <variable>
+	char identifier = token;
+	next_token();
+	// next token = '=' or error
+	if (token != '=') {
+		ERROR("Expected equal sign\n");
+		exit(EXIT_FAILURE);
+	}
+	next_token();
+	// expression returns an int 
+    int expression = expr();
+	CodeGen(STOREAI, identifier, expression, EMPTY_FIELD);
 }
 
 static void print()
