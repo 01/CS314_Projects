@@ -210,11 +210,32 @@ static void assign()
 static void print()
 {
 	/* YOUR CODE GOES HERE */
+	//<print>::= #<variable>
+	// token == '#'
+	// next_token == a->p
+	if (token != '#') {
+		ERROR("Expected # (PRINT) statement\n");
+		exit(EXIT_FAILURE);
+	}
+	next_token();
+	if (!is_identifier(token)) {
+		ERROR("Expected identifier\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// OUTPUTAI token 
+	CodeGen(OUTPUTAI, token, EMPTY_FIELD, EMPTY_FIELD);
+	
 }
 
 static void stmt()
 {
 	/* YOUR CODE GOES HERE */
+	// <stmt> ::= <assign> | <print>
+	// <assign> ::= <variable>=<expr>
+	// <variable> := a->p
+	// <print> ::= #<variable>
+	// token = <variable> | '#' -> a->p | #
 	switch (token) {
 	case 'a':
     case 'b':
