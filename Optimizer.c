@@ -65,6 +65,7 @@ printf("makes it here\n");
 	while(ptr != NULL){
 		if(ptr->opcode == OUTPUTAI){
 			ptr->critical = 1;
+			findStoreAI(ptr, ptr->field2);
 			printf("Instruction %p is critical with field1: %i\n", ptr, ptr->field2);
 		}
 		ptr = ptr->next;
@@ -75,17 +76,6 @@ printf("makes it here\n");
 
 	// Use recursion, method to find instruction with value, then call same method on that new instructions etc base
 	// case front of instruction list
-	printf("Makes it past setting critical\n");
-	ptr = head;
-	while(ptr != NULL){
-		if(ptr->critical ==1){
-			findStoreAI(ptr, ptr->field2); //If critical, find a previous instruction with that same field1
-			printf("Instruction ptr %i is critical\n", ptr);
-			// need to find first storeAI with same field1 and field2 (think field1 is always r0)
-		}
-
-		ptr = ptr->next;
-	}
 
 	deleteNonCritical(head);
 	
@@ -156,6 +146,8 @@ static void findContributingReg(Instruction * instr, int field){
 		// if the instruction is the last instruction to load into register called by findContributing, then its critical
 		if (ptr->opcode == LOADAI && ptr->field3 == field) {
 			printf("Found critical LOADAI with offset %i\n", ptr->field2);
+			//Need to find what store it with offset field 3
+			findStoreAI(ptr, ptr->field2);
 			ptr->critical = 1;
 			break;
 		}
@@ -167,7 +159,7 @@ static void findContributingReg(Instruction * instr, int field){
 			break;
 		}
 		// Need to find if its a expression 
-		if(ptr->opcode == ADD || ptr->opcode == SUB || ptr->opcode == DIV || ptr->opcode == MUL){
+		if((ptr->opcode == ADD || ptr->opcode == SUB || ptr->opcode == DIV || ptr->opcode == MUL) && ptr->field3 == field){
 			// If its a expression arithmetic find which instructions contribute to each of the registers
 			printf("Found critical Arithmatic with with reg1: %i reg2: %i reg3: %i\n", ptr->field1, ptr->field2, ptr->field3);
 			findContributingReg(ptr, ptr->field1);
