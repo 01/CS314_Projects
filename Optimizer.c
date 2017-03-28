@@ -13,9 +13,14 @@
 #include "InstrUtils.h"
 #include "Utils.h"
 
+static void deleteNonCritical(Instruction * head);
+static void findStoreAI(Instruction * instr, int field);
+static void findContributingReg(Instruction * instr, int register);
+
+
 int main()
 {
-	Instruction *head, *ptr;
+	Instruction *head;
 
 	head = ReadInstructionList(stdin);
 	if (!head) {
@@ -24,7 +29,6 @@ int main()
 	}
 
 	/* YOUR CODE GOES HERE */
-		/* YOUR CODE GOES HERE */
 
 	/* Instruction structure is 
 	 * OpCode opcode;
@@ -45,9 +49,9 @@ int main()
  */
 	// Mark initial critical instructions (outputAI) : outputAI rx -> r0, offset
 	// opcode = outputAI, field1 = r0, field 2 = offset;
-	ptr = head;
+	Instruction *ptr = head;
 	while(ptr != NULL){
-		if(ptr->opcode == outputAI) ptr->critical = 1;
+		if(ptr->opcode == OUTPUTAI) ptr->critical = 1;
 	}
 
 	// for outputAI instructions find storeAI instruction that stores in r0
@@ -74,25 +78,23 @@ int main()
 	return EXIT_SUCCESS;
 }
 
-deleteNonCritical(Instruction * head){
+static void deleteNonCritical(Instruction * head){
 	// Remove dead code (remove from Double LL classic)
 	Instruction *temp, *ptr;
 	ptr = head; temp = ptr;
 	while (ptr != NULL) {
 		temp = ptr;
-		// If critical skip it 
 		if (ptr->critical) {
 			ptr = ptr->next;
 			continue;
 		}
-		// If not critical, delete, make head if no previous and point to previous to nex tinstruction if there is a next
 		else{
 			// If instruction is not critical, take next instruction and point its previous to non-critical's previous
 			if (ptr->next != NULL){
 				ptr->next->prev = ptr->prev;
 			}
 			// If there is a previous instruction point it to the non-critical instructions next instruction
-			if (ptr->prev != NULL){
+			else if (ptr->prev != NULL){
 				ptr->prev->next = ptr->next;
 			}
 			// if no previous instruction, then the non-critical instruction was the head, update head;
@@ -102,17 +104,18 @@ deleteNonCritical(Instruction * head){
 		ptr = ptr->next;
 		free(temp);
 	 	}
+	}
 }
 
 static void findStoreAI(Instruction * instr, int field)
 {
 	Instruction *ptr;
 	// work way backwards
-	ptr = ptr->prev;
+	ptr = instr->prev;
 	while (ptr != NULL) {
 		// Found STOREAI that stores into register that outputInstruction takes
 		// find what instruction contribute to that register
-		if (ptr->opcode == STOREAI && ptr->field1 == filed) {
+		if (ptr->opcode == STOREAI && ptr->field1 == field) {
 			findContributingReg(ptr, ptr->field1);
 			ptr->critical = 1;
 			break;
@@ -122,22 +125,22 @@ static void findStoreAI(Instruction * instr, int field)
 }
 
 // From critical instruction, finds previous instructions that loads into that same register 
-static void findContributingReg(Instruction * instr, int register){
+static void findContributingReg(Instruction * instr, int field){
 	Instruction * ptr;
 
-	ptr = ptr->prev;
+	ptr = instr->prev;
 
 	while (ptr != NULL) {
 		
 		// LOADAI, load from one register into another 
 		// if the instruction is the last instruction to load into register called by findContributing, then its critical
-		if (ptr->opcode == LOADAI && ptr->field1 == register) {
+		if (ptr->opcode == LOADAI && ptr->field1 == field) {
 			ptr->critical = 1;
 			break;
 		}
 		// LOADI load an actual value into a register
 		// if the instruction is the last to load a value into register looking for, its critical.
-		if (iter->opcode == LOADI && iter->field1 == register) {
+		if (ptr->opcode == LOADI && ptr->field1 == field) {
 			ptr->critical = 1;
 			break;
 		}
@@ -145,3 +148,4 @@ static void findContributingReg(Instruction * instr, int register){
 	}
 
 }
+
