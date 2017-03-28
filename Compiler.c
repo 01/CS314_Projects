@@ -12,7 +12,7 @@
             CFG for tinyL LANGUAGE
 
      PROGRAM ::= STMTLIST .
-     STMTLIST ::= STMT MORESTMTS
+     STMTLIST ::= STMT MORESTMTS1
      MORESTMTS ::= ; STMTLIST | epsilon
      STMT ::= ASSIGN | PRINT
      ASSIGN ::= VARIABLE = EXPR
@@ -55,8 +55,8 @@
 #define token *buffer
 
 /* GLOBALS */
-static char *buffer = NULL;	/* read buffer */
-static int regnum = 1;		/* for next free virtual register number */
+static char *buffer = NULL;		/* read buffer */
+static int regnum = 1;			/* for next free virtual register number */
 static FILE *outfile = NULL;	/* output of code generation */
 
 /* Utilities */
@@ -111,7 +111,8 @@ static int variable()
 }
 
 static int expr()
-{int reg, left_reg, right_reg;
+{
+	int reg, left_reg, right_reg;
 
 	switch (token) {
 
@@ -121,6 +122,7 @@ static int expr()
 		right_reg = expr();
 		reg = next_register();
 		CodeGen(ADD, left_reg, right_reg, reg);
+		//printf("\n+ %i %i = %i\n", left_reg, right_reg, reg);
 		return reg;
 	case '-':
 		next_token();
@@ -144,55 +146,31 @@ static int expr()
 		CodeGen(DIV, left_reg, right_reg, reg);
 		return reg;
     case 'a':
-    	return variable();
     case 'b':
-    	return variable();
     case 'c':
-    	return variable();
     case 'd':
-    	return variable();
     case 'e':
-    	return variable();
     case 'f':
-    	return variable();
     case 'g':
-    	return variable();
     case 'h':
-    	return variable();
     case 'i':
-    	return variable();
     case 'j':
-    	return variable();
     case 'k':
-    	return variable();
     case 'l':
-    	return variable();
     case 'm':
-    	return variable();
     case 'n':
-    	return variable();
     case 'o':
-    	return variable();
     case 'p':
     	return variable();
     case '0':
-    	return digit();
 	case '1':
-    	return digit();
 	case '2':
-    	return digit();
 	case '3':
-    	return digit();
     case '4':
-    	return digit();
 	case '5':
-    	return digit();
 	case '6':
-    	return digit();
     case '7':
-    	return digit();
 	case '8':
-    	return digit();
 	case '9':
     	return digit();
 
@@ -205,32 +183,26 @@ static int expr()
 static void assign()
 {
 	/* YOUR CODE GOES HERE */
-	// <assign> ::= <variable> = <expr>
-	// first token = <variable> -> a->p or error
+	//printf("Assign() %c\n", token);
 	if (!is_identifier(token)) {
 		ERROR("Expected identifier\n");
 		exit(EXIT_FAILURE);
 	}
-	// store <variable>
-	char identifier = token;
+	int offset = (token - 'a') *4;
 	next_token();
-	// next token = '=' or error
 	if (token != '=') {
 		ERROR("Expected equal sign\n");
 		exit(EXIT_FAILURE);
 	}
 	next_token();
-	// expression returns an int 
-    int expression = expr();
-	CodeGen(STOREAI, identifier, expression, EMPTY_FIELD);
+	//printf("Assign final: %c\n", token);
+
+	CodeGen(STOREAI, expr(), 0, offset);
 }
 
 static void print()
 {
 	/* YOUR CODE GOES HERE */
-	//<print>::= #<variable>
-	// token == '#'
-	// next_token == a->p
 	if (token != '#') {
 		ERROR("Expected # (PRINT) statement\n");
 		exit(EXIT_FAILURE);
@@ -240,21 +212,15 @@ static void print()
 		ERROR("Expected identifier\n");
 		exit(EXIT_FAILURE);
 	}
-
-	// OUTPUTAI token 
-	CodeGen(OUTPUTAI, token, EMPTY_FIELD, EMPTY_FIELD);
+	int offset = (token - 'a') *4;
 	next_token();
+	CodeGen(OUTPUTAI, 0, offset, EMPTY_FIELD);
 	
 }
 
 static void stmt()
 {
 	/* YOUR CODE GOES HERE */
-	// <stmt> ::= <assign> | <print>
-	// <assign> ::= <variable>=<expr>
-	// <variable> := a->p
-	// <print> ::= #<variable>
-	// token = <variable> | '#' -> a->p | #
 	switch (token) {
 	case 'a':
     case 'b':
@@ -278,7 +244,7 @@ static void stmt()
 		print();
 		break;
 	default:
-		ERROR("Symbol %c unknown Failed at stmt()\n", token);
+		ERROR("Symbol %c unknown Failed on stmt method\n", token);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -294,7 +260,7 @@ static void morestmts()
 	case '.':									// epsilon
 		break;
 	default:
-		ERROR("Symbol %c unknown\n", token);
+		ERROR("Symbol %c unknown Failed on morestmts method\n", token);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -304,17 +270,18 @@ static void stmtlist()
 	/* YOUR CODE GOES HERE */
 	stmt();
 	morestmts();
-	
 }
 
 static void program()
 {
-	
-	stmtlist();
+	/* YOUR CODE GOES HERE */
+
+    stmtlist();
+
 	if (token != '.') {
-	  ERROR("Program error.  Current input symbol is %c\n", token);
+	  ERROR("Symbol %c unknown\n", token);
 	  exit(EXIT_FAILURE);
-	};
+	}
 }
 
 /*************************************************************************/
