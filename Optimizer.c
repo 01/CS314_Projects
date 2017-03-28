@@ -13,7 +13,7 @@
 #include "InstrUtils.h"
 #include "Utils.h"
 
-static void deleteNonCritical(Instruction * head);
+Instruction * deleteNonCritical(Instruction * head);
 static void findStoreAI(Instruction * instr, int field);
 static void findContributingReg(Instruction * instr, int register);
 
@@ -77,7 +77,7 @@ printf("makes it here\n");
 	// Use recursion, method to find instruction with value, then call same method on that new instructions etc base
 	// case front of instruction list
 
-	deleteNonCritical(head);
+	head = deleteNonCritical(head);
 	
 	if (head) 
 		PrintInstructionList(stdout, head);
@@ -85,7 +85,7 @@ printf("makes it here\n");
 	return EXIT_SUCCESS;
 }
 
-static void deleteNonCritical(Instruction * head){
+Instruction * deleteNonCritical(Instruction * head){
 	// Remove dead code (remove from Double LL classic)
 	Instruction *temp, *ptr;
 	ptr = head; temp = ptr;
@@ -101,7 +101,7 @@ static void deleteNonCritical(Instruction * head){
 				ptr->next->prev = ptr->prev;
 			}
 			// If there is a previous instruction point it to the non-critical instructions next instruction
-			else if (ptr->prev != NULL){
+			if (ptr->prev != NULL){
 				ptr->prev->next = ptr->next;
 			}
 			// if no previous instruction, then the non-critical instruction was the head, update head;
@@ -112,6 +112,8 @@ static void deleteNonCritical(Instruction * head){
 		free(temp);
 	 	}
 	}
+
+	return head;
 }
 
 static void findStoreAI(Instruction * instr, int field)
