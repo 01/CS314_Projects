@@ -20,6 +20,8 @@ static void findContributingReg(Instruction * instr, int register);
 
 int main()
 {
+	//printf("Makes it here\n");
+
 	Instruction *head;
 
 	head = ReadInstructionList(stdin);
@@ -27,6 +29,9 @@ int main()
 		WARNING("No instructions\n");
 		exit(EXIT_FAILURE);
 	}
+
+printf("makes it here\n");
+	
 
 	/* YOUR CODE GOES HERE */
 
@@ -50,20 +55,32 @@ int main()
 	// Mark initial critical instructions (outputAI) : outputAI rx -> r0, offset
 	// opcode = outputAI, field1 = r0, field 2 = offset;
 	Instruction *ptr = head;
+	
+	// Initially set critical to 0
 	while(ptr != NULL){
-		if(ptr->opcode == OUTPUTAI) ptr->critical = 1;
+		ptr->critical = 0;
+		ptr = ptr->next;
+	}
+	ptr = head;
+	while(ptr != NULL){
+		if(ptr->opcode == OUTPUTAI){
+			ptr->critical = 1;
+			printf("Instruction %p is critical with field1: %i\n", ptr, ptr->field2);
+		}
+		ptr = ptr->next;
 	}
 
-	// for outputAI instructions find storeAI instruction that stores in r0
+	// for outputAI instructions find storeAI instruction that stores in offset
 	// storeAI rs -> r0, offset
 
 	// Use recursion, method to find instruction with value, then call same method on that new instructions etc base
 	// case front of instruction list
-
+	printf("Makes it past setting critical\n");
 	ptr = head;
 	while(ptr != NULL){
 		if(ptr->critical ==1){
-			findStoreAI(ptr, ptr->field1); //If critical, find a previous instruction with that same field1
+			findStoreAI(ptr, ptr->field2); //If critical, find a previous instruction with that same field1
+			printf("Instruction ptr %i is critical\n", ptr);
 			// need to find first storeAI with same field1 and field2 (think field1 is always r0)
 		}
 
@@ -115,7 +132,10 @@ static void findStoreAI(Instruction * instr, int field)
 	while (ptr != NULL) {
 		// Found STOREAI that stores into register that outputInstruction takes
 		// find what instruction contribute to that register
-		if (ptr->opcode == STOREAI && ptr->field1 == field) {
+		if (ptr->opcode == STOREAI && ptr->field3 == field) {
+			//fuck field 3 is offset for StoreAI
+			printf("Found critical STOREAI with offset %i\n", ptr->field3);
+			// Find operation with this register
 			findContributingReg(ptr, ptr->field1);
 			ptr->critical = 1;
 			break;
@@ -134,15 +154,26 @@ static void findContributingReg(Instruction * instr, int field){
 		
 		// LOADAI, load from one register into another 
 		// if the instruction is the last instruction to load into register called by findContributing, then its critical
-		if (ptr->opcode == LOADAI && ptr->field1 == field) {
+		if (ptr->opcode == LOADAI && ptr->field3 == field) {
+			printf("Found critical LOADAI with offset %i\n", ptr->field2);
 			ptr->critical = 1;
 			break;
 		}
 		// LOADI load an actual value into a register
 		// if the instruction is the last to load a value into register looking for, its critical.
-		if (ptr->opcode == LOADI && ptr->field1 == field) {
+		if (ptr->opcode == LOADI && ptr->field2 == field) {
+			printf("Found critical LOADI with offset %i\n", ptr->field2);
 			ptr->critical = 1;
 			break;
+		}
+		// Need to find if its a expression 
+		if(ptr->opcode == ADD || ptr->opcode == SUB || ptr->opcode == DIV || ptr->opcode == MUL){
+			// If its a expression arithmetic find which instructions contribute to each of the registers
+			printf("Found critical Arithmatic with with reg1: %i reg2: %i reg3: %i\n", ptr->field1, ptr->field2, ptr->field3);
+			findContributingReg(ptr, ptr->field1);
+			findContributingReg(ptr, ptr->field2);
+			ptr->critical = 1;
+			return;
 		}
 		ptr = ptr->prev;
 	}
