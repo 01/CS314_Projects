@@ -92,13 +92,55 @@
 ;;  (hash-1 '(h e l l o))       ==> 35616
 ;;  (hash-1 '(m a y))           ==> 46566
 ;;  (hash-1 '(t r e e f r o g)) ==> 48238
-;
+
+;; value of parameter "size" is not critical
+;; Note: hash functions may return integer values in "real"
+;;       format, e.g., 17.0 for 17
+;; value of parameter "size" is not critical
+;; Note: hash functions may return integer values in "real"
+;;       format, e.g., 17.0 for 17
+;;The multiplication method for creating hash functions operates in two steps.
+;; First, we multiply the key k by a constant A (we choose A= 0.6780219887),
+;; and then extract the fractional part of kA. Then, we multiply this value with
+;; size and take the floor of the result. In other words, the hash functions have
+;; the form:
+;; h(k) = FLOOR(size * (k * A - FLOOR(k * A)))
+;; The desired uniform spread of the hash function over its entire range is
+;; not dependent on a particular selection of size.
+(define A 0.6780219887)
+
+(define gen-hash-multiplication-method
+  (lambda (size) ;; range of values: 0..size-1
+    (lambda (w)
+      (if (null? w)
+          0
+          (floor (* (- (* (key w) A)(floor (* (key w) A))) size))))))
+                 ;; First we multiply key k by constant A -> k * A
+                 ;; extract the fractional part of k*A - floor(k*A)
+                 ;; floor((k * A)-
+
+
+(define hash-3 (gen-hash-multiplication-method 7224))
+(define hash-4 (gen-hash-multiplication-method 900))
+
+
+;;  (hash-3 '(h e l l o))       ==> 6331.0
+;;  (hash-3 '(m a y))           ==> 2456.0
+;;  (hash-3 '(t r e e f r o g)) ==> 1806.0
+;;
+;;  (hash-4 '(h e l l o))       ==> 788.0
+;;  (hash-4 '(m a y))           ==> 306.0
+;;  (hash-4 '(t r e e f r o g)) ==> 225.0
+
 (if (equal? (key '(h e l l o)) 106402241991)
    "(key '(hello)) worked!"
    "(key '(hello)) failed......you suck")
 (if (equal? (hash-1 '(h e l l o)) 35616)
    "hash-1 '(h e l l o)) worked!"
    "hash-1 '(h e l l o)) failled.....you suck")
+(if (equal? (hash-3 '(h e l l o)) 6331.0)
+   "hash-3 '(h e l l o)) worked!"
+   "hash-3 '(h e l l o)) failled.....you suck")
 
 (if (equal? (key '(m a y)) 126526810)
    "(key '(m a y)) worked!"
@@ -106,6 +148,9 @@
 (if (equal? (hash-1 '(m a y)) 46566)
    "hash-1 '(m a y)) worked!"
    "hash-1 '(m a y)) failled.....you suck")
+(if (equal? (hash-3 '(m a y)) 2456.0)
+   "hash-3 '(m a y)) worked!"
+   "hash-3 '(m a y)) failled.....you suck")
 
 (if (equal? (key '(t r e e f r o g)) 2594908189083745)
    "(key '(t r e e f r o g)) worked!"
@@ -113,6 +158,9 @@
 (if (equal? (hash-1 '(t r e e f r o g)) 48238)
    "hash-1 '(t r e e f r o g)) worked!"
    "hash-1 '(t r e e f r o g)) failled.....you suck")
+(if (equal? (hash-3 '(t r e e f r o g)) 1806.0)
+   "hash-3 '(t r e e f r o g)) worked!"
+   "hash-3 '(t r e e f r o g)) failled.....you suck")
 
 
 
