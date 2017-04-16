@@ -43,18 +43,19 @@
 ;; key ← 29 · key + ctv(c)
 ;; end for
 ;; where ctv (“character-to-value”) maps ‘a’ to 1, ‘b’ to 2, ... and ‘z’ to 26.
+;; Needs to hall null check when to multiply by 5187
 (define key
-	(lambda (w)
-		(+ 5178 (ctv (car w))(* 29 key (cdr w)))))
+  (lambda (w)
+          (if (null? w)
+            5187 
+            (+(ctv (car w))(* 29 (key (cdr w)))))))
 
-		; key = key * 29 + ctv(c) 
-		; (key '(A B C)) = ctv(C) + 29 * (ctv (B) + 29 *(ctv(A) + (29 * ctv(null)= 5187)))
-		; (key '(A B C)) = ctv(C) + 29 * (ctv (B) + 29 * (ctv(A) + 29 *)
-		; starting from last character  
+    ; key = key * 29 + ctv(c) 
+    ; (key '(A B C)) = ctv(C) + 29 * (ctv (B) + 29 *(ctv(A) + (29 * ctv(null)= 5187)))
+    ; (key '(A B C)) = ctv(C) + 29 * (ctv (B) + 29 * (ctv(A) + 29 *)
+                ; if(w = null) key = 5187 else key = key * 29 + ctv(w)
+    ; starting from last character  
        ;; *** FUNCTION BODY IS MISSING ***
-))
-
-(key '(h e l l o))
 
 ;; -----------------------------------------------------
 ;; EXAMPLE KEY VALUES
@@ -63,3 +64,56 @@
 ;;   (key '(t r e e f r o g)) = 2594908189083745
 
 ;; -----------------------------------------------------
+
+
+;; HASH FUNCTION GENERATORS
+; In the division method, a key k is mapped into size slots by taking the
+; remainder (modulo) of k divided by size. In other words, the hash functions
+; have the form:h(k) = k mod size
+; size should be a prime number in order to generate a more uniform spread
+; of the hash function values over the function’s entire [0, size − 1] range.
+;; value of parameter "size" should be a prime number
+(define gen-hash-division-method
+  (lambda (size) ;; range of values: 0..size-1
+     (lambda (w) ;; h(k) = k mod size -> h(k) = (k mod size)
+        (if (null? w)
+           0
+           (modulo (key w) size)))));;
+
+;; EXAMPLE HASH FUNCTIONS AND HASH FUNCTION LISTS
+
+(define hash-1 (gen-hash-division-method 70111))
+(define hash-2 (gen-hash-division-method 89997))
+(hash-1 '(h e l l o))
+;; -----------------------------------------------------
+;; EXAMPLE HASH VALUES
+;;   to test your hash function implementation
+;;
+;;  (hash-1 '(h e l l o))       ==> 35616
+;;  (hash-1 '(m a y))           ==> 46566
+;;  (hash-1 '(t r e e f r o g)) ==> 48238
+;
+(if (equal? (key '(h e l l o)) 106402241991)
+   "(key '(hello)) worked!"
+   "(key '(hello)) failed......you suck")
+(if (equal? (hash-1 '(h e l l o)) 35616)
+   "hash-1 '(h e l l o)) worked!"
+   "hash-1 '(h e l l o)) failled.....you suck")
+
+(if (equal? (key '(m a y)) 126526810)
+   "(key '(m a y)) worked!"
+   "(key '(m a y)) failed....you suck")
+(if (equal? (hash-1 '(m a y)) 46566)
+   "hash-1 '(m a y)) worked!"
+   "hash-1 '(m a y)) failled.....you suck")
+
+(if (equal? (key '(t r e e f r o g)) 2594908189083745)
+   "(key '(t r e e f r o g)) worked!"
+   "(key '(t r e e f r o g)) failled.....you suck")
+(if (equal? (hash-1 '(t r e e f r o g)) 48238)
+   "hash-1 '(t r e e f r o g)) worked!"
+   "hash-1 '(t r e e f r o g)) failled.....you suck")
+
+
+
+
