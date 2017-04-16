@@ -71,6 +71,10 @@ void PrintInstructionList(FILE * outfile, Instruction * instr)
 	}
 
 	/* YOUR CODE GOES HERE */
+	while (instr != NULL) {
+		PrintInstruction(outfile, instr);
+		instr = instr->next;
+	}
 
 }
 

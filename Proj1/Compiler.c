@@ -2,7 +2,7 @@
  *********************************************
  *  314 Principles of Programming Languages  *
  *  Spring 2017                              *
- *  Author: Ulrich Kremer                    *
+ *  Author: Andrew Khazanovich               *
  *  Student Version                          *
  *********************************************
  */
@@ -12,7 +12,7 @@
             CFG for tinyL LANGUAGE
 
      PROGRAM ::= STMTLIST .
-     STMTLIST ::= STMT MORESTMTS
+     STMTLIST ::= STMT MORESTMTS1
      MORESTMTS ::= ; STMTLIST | epsilon
      STMT ::= ASSIGN | PRINT
      ASSIGN ::= VARIABLE = EXPR
@@ -55,8 +55,8 @@
 #define token *buffer
 
 /* GLOBALS */
-static char *buffer = NULL;	/* read buffer */
-static int regnum = 1;		/* for next free virtual register number */
+static char *buffer = NULL;		/* read buffer */
+static int regnum = 1;			/* for next free virtual register number */
 static FILE *outfile = NULL;	/* output of code generation */
 
 /* Utilities */
@@ -122,21 +122,57 @@ static int expr()
 		right_reg = expr();
 		reg = next_register();
 		CodeGen(ADD, left_reg, right_reg, reg);
+		printf("\n+ %i %i = %i\n", left_reg, right_reg, reg);
 		return reg;
-
-
-        case 'f':
-                return variable();
-
-
+	case '-':
+		next_token();
+		left_reg = expr();
+		right_reg = expr();
+		reg = next_register();
+		CodeGen(SUB, left_reg, right_reg, reg);
+		return reg;
+	case '*':
+		next_token();
+		left_reg = expr();
+		right_reg = expr();
+		reg = next_register();
+		CodeGen(MUL, left_reg, right_reg, reg);
+		return reg;
+	case '%':
+		next_token();
+		left_reg = expr();
+		right_reg = expr();
+		reg = next_register();
+		CodeGen(DIV, left_reg, right_reg, reg);
+		return reg;
+    case 'a':
+    case 'b':
+    case 'c':
+    case 'd':
+    case 'e':
+    case 'f':
+    case 'g':
+    case 'h':
+    case 'i':
+    case 'j':
+    case 'k':
+    case 'l':
+    case 'm':
+    case 'n':
+    case 'o':
+    case 'p':
+    	return variable();
+    case '0':
 	case '1':
-                return digit();
-
 	case '2':
-                return digit();
-
 	case '3':
-                return digit();
+    case '4':
+	case '5':
+	case '6':
+    case '7':
+	case '8':
+	case '9':
+    	return digit();
 
 	default:
 		ERROR("Symbol %c unknown\n", token);
@@ -147,41 +183,105 @@ static int expr()
 static void assign()
 {
 	/* YOUR CODE GOES HERE */
+	printf("Assign() %c\n", token);
+	if (!is_identifier(token)) {
+		ERROR("Expected identifier\n");
+		exit(EXIT_FAILURE);
+	}
+	int offset = (token - 'a') *4;
+	next_token();
+	if (token != '=') {
+		ERROR("Expected equal sign\n");
+		exit(EXIT_FAILURE);
+	}
+	next_token();
+	printf("Assign final: %c\n", token);
+
+	CodeGen(STOREAI, expr(), 0, offset);
 }
 
 static void print()
 {
 	/* YOUR CODE GOES HERE */
+	if (token != '#') {
+		ERROR("Expected # (PRINT) statement\n");
+		exit(EXIT_FAILURE);
+	}
+	next_token();
+	if (!is_identifier(token)) {
+		ERROR("Expected identifier\n");
+		exit(EXIT_FAILURE);
+	}
+	int offset = (token - 'a') *4;
+	next_token();
+	CodeGen(OUTPUTAI, 0, offset, EMPTY_FIELD);
+	
 }
 
 static void stmt()
 {
 	/* YOUR CODE GOES HERE */
+	switch (token) {
+	case 'a':
+    case 'b':
+    case 'c':
+    case 'd':
+    case 'e':
+    case 'f':
+    case 'g':
+    case 'h':
+    case 'i':
+    case 'j':
+    case 'k':
+    case 'l':
+    case 'm':
+    case 'n':
+    case 'o':
+    case 'p':					// assignment
+		assign();
+		break;
+	case '#':					// print		
+		print();
+		break;
+	default:
+		ERROR("Symbol %c unknown Failed on stmt method\n", token);
+		exit(EXIT_FAILURE);
+	}
 }
 
 static void morestmts()
 {
 	/* YOUR CODE GOES HERE */
+	switch (token) {
+	case ';':
+		next_token();
+		stmtlist();
+		break;
+	case '.':									// epsilon
+		break;
+	default:
+		ERROR("Symbol %c unknown Failed on morestmts method\n", token);
+		exit(EXIT_FAILURE);
+	}
 }
 
 static void stmtlist()
 {
 	/* YOUR CODE GOES HERE */
+	stmt();
+	morestmts();
 }
 
 static void program()
 {
 	/* YOUR CODE GOES HERE */
 
-        /* THIS CODE IS BOGUS */
-        int dummy;
-        /* THIS CODE IS BOGUS */
-	dummy = expr();
+    stmtlist();
 
 	if (token != '.') {
-	  ERROR("Program error.  Current input symbol is %c\n", token);
+	  ERROR("Symbol %c unknown\n", token);
 	  exit(EXIT_FAILURE);
-	};
+	}
 }
 
 /*************************************************************************/
